@@ -1,0 +1,15 @@
+services:
+  ip-checker:
+    build: .
+    container_name: ip-checker
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    networks:
+      - web
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=0
+
+networks:
+  web:
+    driver: bridge

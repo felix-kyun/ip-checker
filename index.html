@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Check Your Ip</title>
+  </head>
+  <body>
+    <h1>Check Your IP Address</h1>
+    <p>Your IP address is: <span id="ip-address">Loading...</span></p>
+
+    <script type="module">
+      try {
+        const response = await fetch("/json");
+        const data = await response.json();
+        document.getElementById("ip-address").textContent = data.ip;
+      } catch (error) {
+        document.getElementById("ip-address").textContent =
+          "Error fetching IP address";
+      }
+    </script>
+  </body>
+</html>
