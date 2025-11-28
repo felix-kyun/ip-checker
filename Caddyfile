@@ -1,18 +1,21 @@
 :80 {
+    log {
+  	output file /var/log/caddy/access.log
+	output stdout
+	format console
+    }
+
     root * /srv
 
     handle /text {
-        respond "{http.request.remote.host}"
+        respond "{http.request.header.X-Forwarded-For}" 200
+	header Content-Type text/plain
     }
 
     handle /json {
-        respond `{ "ip": "{http.request.remote.host}" }` 200 
+        respond `{ "ip": "{http.request.header.X-Forwarded-For}" }` 200 
         header Content-Type application/json
     }
 
     file_server
-
-    header {
-        X-Real-IP {http.request.remote.host}
-    }
 }
