@@ -3,19 +3,31 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Check Your Ip</title>
+    <title>ipx</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: monospace;
+        font-size: 1.2rem;
+      }
+    </style>
   </head>
   <body>
-    <h1>Check Your IP Address</h1>
-    <p>Your IP address is: <span id="ip-address">Loading...</span></p>
+    <pre id="root"></pre>
 
     <script type="module">
       try {
         const response = await fetch("/json");
         const data = await response.json();
-        document.getElementById("ip-address").textContent = data.ip;
+        document.getElementById("root").textContent = [
+          `ip: ${data.ip}`,
+          `user_agent: ${data.user_agent}`,
+          `proto: ${data.proto}`,
+        ].join("\n");
       } catch (error) {
-        document.getElementById("ip-address").textContent =
+        document.getElementById("root").textContent =
           "Error fetching IP address";
       }
     </script>

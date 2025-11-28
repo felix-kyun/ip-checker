@@ -1,19 +1,39 @@
 :80 {
     log {
-  	output file /var/log/caddy/access.log
-	output stdout
-	format console
+        output file /var/log/caddy/access.log
+        output stdout
+        format console
     }
 
     root * /srv
 
-    handle /text {
+    @has-xff-json {
+        path /json
+        header X-Forwarded-For *
+    }
+
+    @has-xff-text {
+        path /text
+        header X-Forwarded-For *
+    }
+
+    handle @has-xff-text {
         respond "{http.request.header.X-Forwarded-For}" 200
-	header Content-Type text/plain
+        header Content-Type text/plain
+    }
+
+    handle /text {
+        respond "{remote_host}" 200
+        header Content-Type text/plain
+    }
+
+    handle @has-xff-json {
+        respond `{ "ip": "{http.request.header.X-Forwarded-For}", "user_agent": "{http.request.header.User-Agent}", "proto": "{http.request.proto}" }` 200 
+        header Content-Type application/json
     }
 
     handle /json {
-        respond `{ "ip": "{http.request.header.X-Forwarded-For}" }` 200 
+        respond `{ "ip": "{remote_host}", "user_agent": "{http.request.header.User-Agent}", "proto": "{http.request.proto}" }` 200 
         header Content-Type application/json
     }
 
