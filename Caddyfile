@@ -1,3 +1,4 @@
+# vim:filetype=caddy
 :80 {
     log {
         output file /var/log/caddy/access.log
@@ -6,36 +7,58 @@
     }
 
     root * /srv
+    file_server
 
+    # root
+    @browser-root {
+        header_regexp ua User-Agent "(?i)(mozilla|chrome|safari|opera|edge|firefox)"
+        path /
+    }
+    handle @browser-root {
+        header X-Route browser-root
+        rewrite * /index.html
+    }
+
+    # text
+    @has-xff-text {
+        header X-Forwarded-For *
+        path /text /
+    }
+    handle @has-xff-text {
+        header X-Route xff-text
+        header Content-Type text/plain
+        respond "{http.request.header.X-Forwarded-For}" 200
+    }
+
+    @text {
+        path /text /
+    }
+    handle @text {
+        header X-Route text
+        header Content-Type text/plain
+        respond "{remote_host}" 200
+    }
+
+    # json
     @has-xff-json {
         path /json
         header X-Forwarded-For *
     }
-
-    @has-xff-text {
-        path /text
-        header X-Forwarded-For *
-    }
-
-    handle @has-xff-text {
-        respond "{http.request.header.X-Forwarded-For}" 200
-        header Content-Type text/plain
-    }
-
-    handle /text {
-        respond "{remote_host}" 200
-        header Content-Type text/plain
-    }
-
     handle @has-xff-json {
-        respond `{ "ip": "{http.request.header.X-Forwarded-For}", "user_agent": "{http.request.header.User-Agent}", "proto": "{http.request.proto}" }` 200 
+        header X-Route xff-json
         header Content-Type application/json
+        respond `{ "ip": "{http.request.header.X-Forwarded-For}", "user_agent": "{http.request.header.User-Agent}", "proto": "{http.request.proto}" }` 200 
     }
 
     handle /json {
-        respond `{ "ip": "{remote_host}", "user_agent": "{http.request.header.User-Agent}", "proto": "{http.request.proto}" }` 200 
+        header X-Route json
         header Content-Type application/json
+        respond `{ "ip": "{remote_host}", "user_agent": "{http.request.header.User-Agent}", "proto": "{http.request.proto}" }` 200 
     }
 
-    file_server
+    handle {
+        header X-Route not-found
+        header Content-Type text/plain
+        respond "404 Not Found" 404
+    }
 }
